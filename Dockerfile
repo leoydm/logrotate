@@ -6,6 +6,7 @@ ARG LOGROTATE_VERSION=latest
 # permissions
 ARG CONTAINER_UID=1000
 ARG CONTAINER_GID=1000
+ARG TARGETPLATFORM
 
 # install dev tools
 RUN export CONTAINER_USER=logrotate && \
@@ -24,8 +25,13 @@ RUN export CONTAINER_USER=logrotate && \
       else apk add "logrotate=${LOGROTATE_VERSION}" ; \
     fi && \
     mkdir -p /usr/bin/logrotate.d && \
-    wget --no-check-certificate -O /tmp/go-cron.tar.gz https://github.com/michaloo/go-cron/releases/download/v0.0.2/go-cron.tar.gz && \
-    tar xvf /tmp/go-cron.tar.gz -C /usr/bin && \
+    if [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
+      wget --no-check-certificate -O /tmp/go-cron-amd64.tar.gz https://github.com/leoydm/go-cron/releases/download/v1/go-cron-amd64.tar.gz && \
+      tar xvf /tmp/go-cron-amd64.tar.gz -C /usr/bin ; \
+    elif [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
+      wget --no-check-certificate -O /tmp/go-cron-arm64.tar.gz https://github.com/leoydm/go-cron/releases/download/v1/go-cron-arm64.tar.gz && \
+      tar xvf /tmp/go-cron-arm64.tar.gz -C /usr/bin ; \
+    fi && \
     apk del \
       wget && \
     rm -rf /var/cache/apk/* && rm -rf /tmp/*
@@ -51,5 +57,7 @@ COPY logrotateConf.sh /usr/bin/logrotate.d/logrotateConf.sh
 COPY logrotateCreateConf.sh /usr/bin/logrotate.d/logrotateCreateConf.sh
 
 ENTRYPOINT ["/sbin/tini","--","/usr/bin/logrotate.d/docker-entrypoint.sh"]
+#ENTRYPOINT ["sleep"]
 VOLUME ["/logrotate-status"]
 CMD ["cron"]
+#CMD ["100000"]
