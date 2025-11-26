@@ -8,6 +8,8 @@ ARG CONTAINER_UID=1000
 ARG CONTAINER_GID=1000
 ARG TARGETPLATFORM
 
+RUN sed -i 's#https\?://dl-cdn.alpinelinux.org/alpine#https://mirrors.aliyun.com/alpine#g' /etc/apk/repositories
+
 # install dev tools
 RUN export CONTAINER_USER=logrotate && \
     export CONTAINER_GROUP=logrotate && \
